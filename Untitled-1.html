@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chill Cafe | Ultimate System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --gold: #c5a059; --coffee: #3e2723; --cream: #fdfaf5; --white: #ffffff; 
+            --green: #27ae60; --orange: #f39c12; --red: #e74c3c; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--cream); color: var(--coffee); }
+        nav { background: var(--white); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: bold; }
+        .nav-links button { background: none; border: none; margin-left: 10px; font-weight: 600; cursor: pointer; font-size: 0.8rem; color: var(--coffee); }
+        .nav-links button.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        section { display: none; animation: fadeIn 0.3s ease; }
+        section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .admin-card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .hero { height: 160px; background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200'); background-size: cover; background-position: center; border-radius: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; margin-bottom: 20px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; display: none; }
+        .menu-grid.active { display: grid; }
+        .card { background: white; border-radius: 20px; padding: 12px; text-align: center; position: relative; border: 1px solid #eee; }
+        .card img { width: 100%; height: 100px; border-radius: 12px; object-fit: cover; }
+        .receipt { background: white; padding: 20px; border-top: 5px solid var(--coffee); font-family: 'Courier Prime', monospace; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-width: 320px; margin: 10px auto; font-size: 11px; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; justify-content: center; align-items: center; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .order-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 400px; background: var(--coffee); color: white; padding: 12px 25px; border-radius: 50px; display: none; justify-content: space-between; align-items: center; z-index: 1001; }
+        .call-btn { position: fixed; bottom: 85px; right: 20px; width: 50px; height: 50px; background: var(--gold); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 999; border: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="sndOrder" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="sndDone" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+    <audio id="sndBell" src="https://assets.mixkit.co/active_storage/sfx/1070/1070-preview.mp3" preload="auto"></audio>
+
+    <button class="call-btn" onclick="panggilPelayan()">🔔</button>
+
+    <div id="login-overlay">
+        <div class="admin-card" style="width: 280px; text-align: center;">
+            <h3>Admin Login</h3><br>
+            <input type="password" id="pass" placeholder="PIN" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; text-align:center;"><br><br>
+            <button id="btnLoginAction" style="width:100%; padding:12px; background:var(--gold); color:white; border:none; border-radius:10px; font-weight:bold;">MASUK</button>
+            <p onclick="document.getElementById('login-overlay').style.display='none'" style="margin-top:10px; cursor:pointer; font-size:12px; color:#999;">Batal</p>
+        </div>
+    </div>
+
+    <nav>
+        <div class="logo">🍃 CHILL CAFE</div>
+        <div class="nav-links">
+            <button onclick="go('home')" id="btn-home" class="active">Home</button>
+            <button onclick="go('menu')" id="btn-menu">Menu</button>
+            <button onclick="document.getElementById('login-overlay').style.display='flex'">Admin</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section id="home" class="active">
+            <div class="hero"><h1>Relax & Enjoy</h1><p>Suasana tenang, rasa berkelas.</p></div>
+            <h3 style="margin-bottom:10px;">Suasana Cafe 📸</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+                <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400" style="width:100%; height:130px; border-radius:15px; object-fit:cover;">
+                <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400" style="width:100%; height:130px; border-radius:15px; object-fit:cover;">
+            </div>
+            <h3 style="margin-bottom:10px;">Rekomendasi Menu ✨</h3>
+            <div id="recom-list" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:10px;"></div>
+        </section>
+
+        <section id="menu">
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+                <button id="cat-minuman" class="active" onclick="showCat('minuman')" style="padding:8px 15px; border-radius:20px; border:1px solid var(--gold); cursor:pointer;">Minuman</button>
+                <button id="cat-snack" onclick="showCat('snack')" style="padding:8px 15px; border-radius:20px; border:1px solid var(--gold); cursor:pointer;">Snack</button>
+                <button id="cat-makanan" onclick="showCat('makanan')" style="padding:8px 15px; border-radius:20px; border:1px solid var(--gold); cursor:pointer;">Makanan</button>
+            </div>
+            <div id="grid-minuman" class="menu-grid active"></div>
+            <div id="grid-snack" class="menu-grid"></div>
+            <div id="grid-makanan" class="menu-grid"></div>
+            <div style="height:100px;"></div>
+        </section>
+
+        <section id="pesan-page">
+            <div class="admin-card">
+                <h3>Formulir Pesanan</h3><br>
+                <input type="text" id="c-name" placeholder="Nama Anda" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+                <input type="number" id="c-addr" placeholder="No Meja" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+                <textarea id="c-note" placeholder="Catatan (opsional)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd; height:80px;"></textarea>
+                <select id="c-pay" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;">
+                    <option value="Tunai">Tunai / Bayar di Kasir</option>
+                    <option value="DANA">DANA / QRIS</option>
+                </select>
+                <button id="btnKirimFirebase" style="width:100%; padding:15px; background:var(--coffee); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">KIRIM PESANAN</button>
+            </div>
+        </section>
+
+        <section id="monitor">
+            <div class="admin-card" style="text-align:center;">
+                <div id="st-icon" style="font-size:50px;">⏳</div>
+                <h2 id="st-text">Pesanan Sedang Dibuat</h2>
+                <div id="notif-box" style="display:none; background:var(--green); color:white; padding:10px; border-radius:10px; margin-top:15px; font-weight:bold;">SILAKAN AMBIL DI KASIR!</div>
+            </div>
+            <div id="struk-box" class="receipt" style="display:none;"></div>
+            <button onclick="localStorage.removeItem('activeOrderId'); location.reload();" style="display:block; margin:20px auto; padding:10px 20px; border:none; border-radius:50px; background:#ddd; cursor:pointer;">Pesan Lagi</button>
+        </section>
+
+        <section id="admin">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h3>Dashboard Admin</h3>
+                <button onclick="location.reload()" style="background:var(--red); color:white; border:none; padding:5px 15px; border-radius:50px;">Logout</button>
+            </div>
+            <div id="panggilan-area"></div>
+            <div style="background:var(--coffee); color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:15px;">
+                <small>Total Omset (Selesai)</small><h2 id="omset">Rp 0</h2>
+            </div>
+            <div class="admin-card">
+                <h4>📋 Daftar Pesanan Masuk</h4>
+                <table><thead><tr><th>Detail</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="a-body"></tbody></table>
+            </div>
+        </section>
+    </div>
+
+    <div id="order-bar" class="order-bar">
+        <span id="bar-info">0 Item</span>
+        <button onclick="go('pesan-page')" style="background:var(--gold); border:none; padding:8px 25px; border-radius:20px; color:white; font-weight:bold; cursor:pointer;">Pesan</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { databaseURL: "https://chill-cafe-92867-default-rtdb.asia-southeast1.firebasedatabase.app/" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const PIN = "chill111";
+
+        // --- REGISTRASI SERVICE WORKER UNTUK NOTIFIKASI BACKGROUND ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log("Service Worker Registered");
+            });
+        }
+
+        function requestPermission() {
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        }
+
+        async function triggerPush(nama) {
+            const reg = await navigator.serviceWorker.ready;
+            if (Notification.permission === "granted") {
+                reg.active.postMessage({
+                    type: 'SHOW_NOTIF',
+                    title: '🍃 CHILL CAFE',
+                    body: `Halo ${nama}, pesananmu SUDAH SELESAI! Silakan ambil di kasir.`
+                });
+            }
+        }
+
+        const menus = [
+            {id:1, n:'Coffee Latte', p:18000, c:'minuman', img:'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=200'},
+            {id:2, n:'Hot Coffee Latte', p:15000, c:'minuman', img:'https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg?auto=compress&cs=tinysrgb&w=400'},
+            {id:3, n:'Matcha Latte', p:24000, c:'minuman', img:'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=200'},
+            {id:4, n:'Ice Jeruk', p:12000, c:'minuman', img:'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=200'},
+            {id:5, n:'Strawberry Milkshake', p:28000, c:'minuman', img:'https://images.unsplash.com/photo-1553177595-4de2bb0842b9?w=400'},
+            {id:6, n:'Mango Smoothies', p:22000, c:'minuman', img:'https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=200'},
+            {id:7, n:'Pizza Meat', p:45000, c:'snack', img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200'},
+            {id:8, n:'Beef Burger', p:35000, c:'snack', img:'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200'},
+            {id:9, n:'Croissant', p:20000, c:'snack', img:'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=200'},
+            {id:10, n:'French Fries', p:15000, c:'snack', img:'https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=200'},
+            {id:11, n:'Ayam Bakar', p:35000, c:'makanan', img:'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=300'},
+            {id:12, n:'Fish & Chips', p:38000, c:'makanan', img:'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=300'},
+            {id:13, n:'Chicken Egg', p:38000, c:'makanan', img:'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=300'},
+            {id:14, n:'Mie Tom Yum', p:42000, c:'makanan', img:'https://images.unsplash.com/photo-1548943487-a2e4e43b4853?w=300'}
+        ];
+
+        let cart = {};
+
+        window.go = (id) => {
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'admin') listenAdmin();
+        };
+
+        window.showCat = (c) => {
+            document.querySelectorAll('.menu-grid').forEach(g => g.classList.remove('active'));
+            document.querySelectorAll('[id^="cat-"]').forEach(b => b.classList.remove('active'));
+            document.getElementById('grid-'+c).classList.add('active');
+            document.getElementById('cat-'+c).classList.add('active');
+        };
+
+        window.addCart = (id, v) => {
+            requestPermission();
+            cart[id] = (cart[id] || 0) + v;
+            if(cart[id] < 0) cart[id] = 0;
+            updateUI();
+        };
+
+        function updateUI() {
+            let tot = 0, count = 0;
+            for(let id in cart) { 
+                let m = menus.find(x => x.id == id);
+                tot += cart[id] * m.p; count += cart[id]; 
+            }
+            document.getElementById('order-bar').style.display = count > 0 ? 'flex' : 'none';
+            document.getElementById('bar-info').innerText = count + " Item | Rp " + tot.toLocaleString();
+            renderMenu();
+        }
+
+        function renderMenu() {
+            ['minuman','snack','makanan'].forEach(cat => {
+                let filtered = menus.filter(m => m.c === cat);
+                let target = document.getElementById('grid-'+cat);
+                if(target) target.innerHTML = filtered.map(m => `
+                    <div class="card">
+                        <img src="${m.img}"><h5>${m.n}</h5><p>Rp ${m.p.toLocaleString()}</p>
+                        <div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
+                            <button onclick="addCart(${m.id},-1)" style="width:25px; background:var(--coffee); color:white; border:none; border-radius:50%;">-</button>
+                            <span><b>${cart[m.id] || 0}</b></span>
+                            <button onclick="addCart(${m.id},1)" style="width:25px; background:var(--coffee); color:white; border:none; border-radius:50%;">+</button>
+                        </div>
+                    </div>`).join('');
+            });
+        }
+
+        // --- KIRIM PESANAN ---
+        document.getElementById('btnKirimFirebase').onclick = () => {
+            let n = document.getElementById('c-name').value;
+            let a = document.getElementById('c-addr').value;
+            if(!n || !a) return alert('Nama & Meja harus diisi!');
+            
+            let items = [], total = 0;
+            for(let id in cart) {
+                if(cart[id] > 0) {
+                    let m = menus.find(x => x.id == id);
+                    items.push({n:m.n, q:cart[id], sub:m.p*cart[id]});
+                    total += m.p*cart[id];
+                }
+            }
+            
+            const orderRef = push(ref(db, 'orders'));
+            const orderData = { name: n, addr: a, items: items, total: total, status: 'Pending', time: Date.now() };
+            
+            set(orderRef, orderData);
+            localStorage.setItem('activeOrderId', orderRef.key);
+            
+            document.getElementById('sndOrder').play();
+            printStruk(orderData);
+            go('monitor');
+            monitorStatus(orderRef.key);
+        };
+
+        function monitorStatus(id) {
+            onValue(ref(db, 'orders/' + id), (snap) => {
+                const data = snap.val();
+                if(data?.status === 'Selesai') {
+                    document.getElementById('st-icon').innerText = "✅";
+                    document.getElementById('st-text').innerText = "PESANAN SELESAI!";
+                    document.getElementById('notif-box').style.display = "block";
+                    document.getElementById('sndDone').play();
+                    triggerPush(data.name);
+                }
+            });
+        }
+
+        // --- CEK JIKA ADA PESANAN AKTIF SAAT REFRESH ---
+        const savedId = localStorage.getItem('activeOrderId');
+        if(savedId) {
+            go('monitor');
+            monitorStatus(savedId);
+            // Ambil data untuk struk
+            onValue(ref(db, 'orders/' + savedId), (snap) => {
+                if(snap.val()) printStruk(snap.val());
+            }, {onlyOnce: true});
+        }
+
+        function printStruk(o) {
+            let box = document.getElementById('struk-box');
+            box.style.display = 'block';
+            box.innerHTML = `<h3>CHILL CAFE</h3><p>Nama: ${o.name} | Meja: ${o.addr}</p><hr>
+                ${o.items.map(i => `<div>${i.n} x${i.q} <span style="float:right">${i.sub.toLocaleString()}</span></div>`).join('')}
+                <hr><b>TOTAL: Rp ${o.total.toLocaleString()}</b>`;
+        }
+
+        document.getElementById('btnLoginAction').onclick = () => {
+            if(document.getElementById('pass').value === PIN) {
+                document.getElementById('login-overlay').style.display='none';
+                go('admin');
+            } else alert('PIN Salah!');
+        };
+
+        function listenAdmin() {
+            onValue(ref(db, 'orders'), (snap) => {
+                const data = snap.val();
+                let list = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : [];
+                let oms = list.filter(x => x.status === 'Selesai').reduce((a,b) => a + b.total, 0);
+                document.getElementById('omset').innerText = "Rp " + oms.toLocaleString();
+                document.getElementById('a-body').innerHTML = list.reverse().map(o => `
+                    <tr>
+                        <td><b>${o.name} (Meja ${o.addr})</b><br><small>${o.items.map(i=>i.n+'x'+i.q).join(', ')}</small></td>
+                        <td style="color:${o.status==='Selesai'?'green':'orange'}">${o.status}</td>
+                        <td>
+                            <button onclick="updateS('${o.id}')">Selesai</button>
+                            <button onclick="hapusO('${o.id}')" style="background:red;color:white">X</button>
+                        </td>
+                    </tr>`).join('');
+            });
+        }
+
+        window.updateS = (id) => update(ref(db, 'orders/' + id), {status:'Selesai'});
+        window.hapusO = (id) => confirm('Hapus?') && remove(ref(db, 'orders/' + id));
+        window.panggilPelayan = () => {
+            let m = prompt("No Meja?");
+            if(m) { push(ref(db, 'panggilan'), {meja:m}); alert("Pelayan menuju meja " + m); }
+        };
+
+        onValue(ref(db, 'panggilan'), (snap) => {
+            if(snap.val()) {
+                document.getElementById('sndBell').play();
+                let html = Object.keys(snap.val()).map(k => `<div style="background:red;color:white;padding:10px;margin-bottom:5px;border-radius:10px">🚨 Meja ${snap.val()[k].meja} memanggil! <button onclick="clearCall()" style="float:right">OK</button></div>`).join('');
+                document.getElementById('panggilan-area').innerHTML = html;
+            } else document.getElementById('panggilan-area').innerHTML = '';
+        });
+        window.clearCall = () => remove(ref(db, 'panggilan'));
+
+        renderMenu();
+        document.getElementById('recom-list').innerHTML = [menus[0], menus[7], menus[10]].map(m => `
+            <div style="min-width:120px; background:white; padding:10px; border-radius:15px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                <img src="${m.img}" style="width:100%; height:70px; border-radius:10px; object-fit:cover;">
+                <p style="font-size:10px; font-weight:600; margin-top:5px;">${m.n}</p>
+            </div>`).join('');
+    </script>
+</body>
+</html>
